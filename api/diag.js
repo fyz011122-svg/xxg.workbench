@@ -13,11 +13,17 @@ module.exports = async (req, res) => {
     list.push(probe);
     await writeOrders(list);
     out.steps.push('写入探针: ok');
-    const after = await readOrders();
-    out.steps.push('读回: ' + (Array.isArray(after) ? after.length + ' 条' : String(after)));
-    const found = Array.isArray(after) && after.some((o) => o.id === probe.id);
+    // 存储层可能有秒级同步延迟，最多等 ~8 秒轮询读回
+    let found = false, after = null;
+    for (let i = 0; i < 5; i++) {
+      await new Promise((r) => setTimeout(r, 1600));
+      after = await readOrders();
+      found = Array.isArray(after) && after.some((o) => o.id === probe.id);
+      out.steps.push('第' + (i + 1) + '次读回(' + ((i + 1) * 1.6).toFixed(1) + '秒后): ' + (Array.isArray(after) ? after.length + ' 条' + (found ? '，含探针✓' : '') : String(after)));
+      if (found) break;
+    }
     out.ok = found;
-    out.steps.push(found ? '✓ 写后可读回' : '✗ 写后读不到');
+    if (!found) out.steps.push('✗ 8秒内始终读不到探针');
     // 恢复：移除探针，写回原数据（不污染真实订单）
     if (Array.isArray(before)) { await writeOrders(before); out.steps.push('已恢复原数据'); }
   } catch (e) {

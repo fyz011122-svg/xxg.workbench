@@ -19,13 +19,13 @@ async function readOrders() {
 }
 
 async function writeOrders(arr) {
-  // 私有库写入（新版 SDK 支持 access: 'private'）
-  // allowOverwrite: true —— 文件名固定为 orders.json，每次写入允许覆盖旧内容，
-  // 否则文件已存在时会抛 BlobError（重试 3 次后失败）
+  // allowOverwrite: 固定文件名覆盖写入
+  // cacheControlMaxAge: 0 —— 关键！禁止 CDN 缓存，否则写完立刻读会拿到旧缓存数据
   await put(KEY, JSON.stringify(arr), {
     access: 'private',
     addRandomSuffix: false,
     allowOverwrite: true,
+    cacheControlMaxAge: 0,
     contentType: 'application/json'
   });
 }
