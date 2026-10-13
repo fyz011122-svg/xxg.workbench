@@ -336,7 +336,11 @@
         currentView = 'orders'; render();
       }).catch(function (e) {
         console.error('[点餐端] 下单失败', e);
-        toast('下单失败，检查网络');
+        var msg = (e && e.message) ? e.message : '下单失败，检查网络';
+        toast('下单失败：' + msg);
+        // 同时把错误写到连接状态框，避免一闪而过
+        var box = document.getElementById('connStatus');
+        if (box) { box.className = 'conn-status err'; box.textContent = '✗ 下单失败：' + msg; }
       });
     });
   }

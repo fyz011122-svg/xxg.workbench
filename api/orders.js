@@ -33,20 +33,26 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'POST') {
-    const data = await readBody(req);
-    const order = {
-      id: 'ord_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-      items: Array.isArray(data.items) ? data.items : [],
-      total: Number(data.total) || 0,
-      table: data.table || '',
-      note: data.note || '',
-      status: '待接单',
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    };
-    orders.push(order);
-    await writeOrders(orders);
-    return res.status(201).json(order);
+    try {
+      const data = await readBody(req);
+      const order = {
+        id: 'ord_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        items: Array.isArray(data.items) ? data.items : [],
+        total: Number(data.total) || 0,
+        table: data.table || '',
+        note: data.note || '',
+        status: '待接单',
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      orders.push(order);
+      await writeOrders(orders);
+      return res.status(201).json(order);
+    } catch (e) {
+      console.error('[下单失败]', e);
+      // 把具体错误返回给前端，方便排查
+      return res.status(500).json({ error: '下单失败：' + (e && e.message ? e.message : String(e)) });
+    }
   }
 
   res.status(405).json({ error: 'method not allowed' });
