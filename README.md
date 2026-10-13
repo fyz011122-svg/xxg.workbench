@@ -111,13 +111,65 @@ workbench/
 
 ## 七、部署上线（让手机能访问）
 
-当前项目是静态文件，可部署到任意静态托管：
+本项目是纯静态站点，仓库已内置 **Vercel** 与 **Netlify** 的配置文件，可直接一键部署。
 
-- **Netlify / Vercel**：拖拽整个 `workbench` 文件夹即可，秒出网址。
-- **Cloudflare Pages / GitHub Pages**：推送到仓库后一键部署。
-- **自己的服务器**：把文件夹放进 Nginx 网站根目录。
+### 方式 A：Netlify Drop（最快，无需注册 Git）
 
-> ⚠️ PWA 的安装与离线功能需要 **HTTPS**（或 localhost）。用上面平台会自动带 HTTPS。
+1. 电脑浏览器打开 <https://app.netlify.com/drop>
+2. 把整个 `workbench` 文件夹**拖进去**
+3. 等十几秒 → 得到一个 `https://xxx.netlify.app` 网址
+4. 手机浏览器打开该网址，按「一、怎么用起来」添加到主屏幕
+
+> 想固定网址：在 Netlify 里注册免费账号（可用邮箱/GitHub），即可保留站点并自定义域名。
+
+### 方式 B：Vercel（推荐，能自动更新）
+
+1. 把仓库推到 GitHub（见下）
+2. 打开 <https://vercel.com/new> → 用 GitHub 登录 → 选择该仓库
+3. Framework Preset 选 **Other**，Build Command 留空，Output Directory 留 `.`
+4. 点 **Deploy** → 几十秒后得到 `https://xxx.vercel.app`
+
+以后每次 `git push`，Vercel 会自动重新部署。
+
+### 方式 C：GitHub Pages
+
+1. 把仓库推到 GitHub
+2. 仓库 **Settings → Pages → Source** 选 `main` 分支、`/ (root)` → Save
+3. 网址为 `https://用户名.github.io/仓库名/`
+
+### 方式 D：自己的服务器（Nginx）
+
+```bash
+# 把文件夹内容上传到服务器网站根目录
+scp -r workbench/* user@你的服务器:/var/www/workbench/
+```
+
+Nginx 配置：
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name your-domain.com;
+    root /var/www/workbench;
+    index index.html;
+    location = /sw.js { add_header Cache-Control "no-cache"; }
+}
+```
+
+### 推送到 GitHub（方式 B/C 前置）
+
+```bash
+cd workbench
+git remote add origin https://github.com/你的用户名/workbench.git
+git branch -M main
+git push -u origin main
+```
+
+> ⚠️ PWA 的「安装到桌面」和离线功能需要 **HTTPS**（localhost 除外）。以上平台都会自动带 HTTPS。
+
+### 自定义域名（可选）
+
+在 Netlify / Vercel 后台找到 **Domains**，添加自己的域名并按提示配置 DNS 即可，免费套餐已支持。
 
 ---
 
@@ -127,4 +179,51 @@ workbench/
 cd workbench
 python3 -m http.server 8080
 # 浏览器打开 http://localhost:8080
+```
+
+---
+
+## 九、主题说明
+
+当前为 **ins 极简 · 美拉德 × 奶油** 配色：
+
+| 用途 | 色值 |
+|------|------|
+| 主色（焦糖棕） | `#a9714b` |
+| 背景（奶油白） | `#faf6f0` |
+| 卡片（纯白） | `#ffffff` |
+| 主文字（深咖） | `#3d3229` |
+| 次级文字（浅咖） | `#8a7a6b` |
+| 边框（米灰） | `#ece4d8` |
+| 收入（砖红） | `#c05f4c` |
+| 支出（橄榄绿） | `#7d9471` |
+
+**想换配色**：只改 `assets/style.css` 顶部 `:root` 里的变量即可，全站自动生效。
+深浅色变量已备好（`html[data-theme="dark"]`），后续可加切换开关。
+
+查看效果：浏览器打开 `theme-preview.html`。
+
+---
+
+## 十、文件结构
+
+```
+workbench/
+├── index.html              # 页面骨架
+├── manifest.webmanifest    # PWA 配置（桌面图标、全屏）
+├── sw.js                   # 离线缓存
+├── vercel.json             # Vercel 部署配置
+├── netlify.toml            # Netlify 部署配置
+├── theme-preview.html      # 主题效果预览页
+├── README.md               # 本文档
+├── icons/                  # 应用图标（你的头像）
+│   ├── icon-192.png
+│   ├── icon-512.png
+│   ├── icon-maskable-512.png
+│   └── apple-touch-icon.png
+└── assets/
+    ├── style.css           # 样式（含主题变量、深色模式变量）
+    ├── db.js               # 数据层 + 云同步接口
+    ├── modules.js          # ★ 分区注册表（扩展改这里）
+    └── app.js              # 主逻辑
 ```

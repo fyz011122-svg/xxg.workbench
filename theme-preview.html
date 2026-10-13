@@ -1,0 +1,81 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="./assets/style.css">
+<style>body{overflow:auto;padding:20px;background:#f3ece4;display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+.phone{width:340px;height:700px;background:var(--c-bg);border-radius:34px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(90,70,50,.18);border:8px solid #e6ddd1;position:relative}
+.ph-top{padding:14px 16px 10px;background:var(--c-card);border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:10px}
+.ph-body{flex:1;overflow-y:auto;padding:14px}
+.ph-tabs{display:flex;border-top:1px solid var(--c-border);background:var(--c-card);height:56px}
+.ph-tabs .tab{flex:1}
+.ph-fab{position:absolute;right:16px;bottom:74px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--c-grad-a),var(--c-grad-b));color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(150,99,63,.35)}
+.label{position:absolute;top:-26px;left:0;font-size:12px;color:#8a7a6b;letter-spacing:1px}</style>
+</head><body>
+<div style="position:relative">
+<div class="label">概览页</div>
+<div class="phone">
+  <div class="ph-top"><div class="brand-logo">台</div><div><div style="font-size:16px;font-weight:700">今日概览</div><div style="font-size:11px;color:var(--c-text-3)">10月13日 星期一</div></div></div>
+  <div class="ph-body">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">待办</div><div class="stat-sub">项未完成</div></div>
+      <div class="stat-card"><div class="stat-num">2</div><div class="stat-label">今日日程</div><div class="stat-sub">项安排</div></div>
+      <div class="stat-card"><div class="stat-num">¥1,280</div><div class="stat-label">本月支出</div><div class="stat-sub">收入 ¥8,000</div></div>
+      <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">进行中目标</div><div class="stat-sub">个目标</div></div>
+    </div>
+    <div class="card"><div class="card-head"><h2>今日打卡</h2><span class="link-btn">全部 ›</span></div>
+      <div class="habit-strip">
+        <span class="habit-chip done" style="--hc:#a9714b"><span class="hc-dot"></span>早起</span>
+        <span class="habit-chip" style="--hc:#7d9471"><span class="hc-dot"></span>跑步</span>
+        <span class="habit-chip done" style="--hc:#c05f4c"><span class="hc-dot"></span>阅读</span>
+      </div>
+    </div>
+    <div class="card"><div class="card-head"><h2>待办清单</h2><span class="link-btn">全部 ›</span></div>
+      <div class="row-item"><span class="chk"></span><div class="row-main"><div class="row-title">完成季度报告</div><div class="row-sub">10月15日 周三 · 工作</div></div><span class="prio p-high">高</span></div>
+      <div class="row-item"><span class="chk"></span><div class="row-main"><div class="row-title">预约体检</div><div class="row-sub">生活</div></div><span class="prio p-mid">中</span></div>
+    </div>
+  </div>
+  <div class="ph-fab">+</div>
+  <div class="ph-tabs">
+    <div class="tab active"><span class="tab-ico">◈</span><span class="tab-txt">概览</span></div>
+    <div class="tab"><span class="tab-ico">✓</span><span class="tab-txt">待办</span></div>
+    <div class="tab"><span class="tab-ico">▤</span><span class="tab-txt">日程</span></div>
+    <div class="tab"><span class="tab-ico">◎</span><span class="tab-txt">习惯</span></div>
+    <div class="tab"><span class="tab-ico">¥</span><span class="tab-txt">记账</span></div>
+  </div>
+</div>
+</div>
+<div style="position:relative">
+<div class="label">记账 & 习惯页</div>
+<div class="phone">
+  <div class="ph-top"><div class="brand-logo">台</div><div><div style="font-size:16px;font-weight:700">记账</div><div style="font-size:11px;color:var(--c-text-3)">收支记录</div></div></div>
+  <div class="ph-body">
+    <div class="ledger-summary">
+      <div class="ls-item"><span>本月收入</span><b class="income">+¥8000.00</b></div>
+      <div class="ls-item"><span>本月支出</span><b class="expense">-¥1280.00</b></div>
+      <div class="ls-item"><span>结余</span><b>¥6720.00</b></div>
+    </div>
+    <div class="row-item"><div class="row-main"><div class="row-title">午餐</div><div class="row-sub">10月13日 · 餐饮</div></div><span class="amount expense">-¥25.00</span></div>
+    <div class="row-item"><div class="row-main"><div class="row-title">工资</div><div class="row-sub">10月10日</div></div><span class="amount income">+¥8000.00</span></div>
+    <div class="row-item"><div class="row-main"><div class="row-title">地铁</div><div class="row-sub">10月13日 · 交通</div></div><span class="amount expense">-¥6.00</span></div>
+    <div class="habit-card" style="--hc:#a9714b">
+      <div class="habit-head"><div><div class="habit-title">早起</div><div class="habit-meta">本周 5/7 次</div></div></div>
+      <div class="habit-days">
+        <div class="hday"><span class="hday-w">一</span><span class="hday-d">07</span></div>
+        <div class="hday on"><span class="hday-w">二</span><span class="hday-d">08</span></div>
+        <div class="hday on"><span class="hday-w">三</span><span class="hday-d">09</span></div>
+        <div class="hday on"><span class="hday-w">四</span><span class="hday-d">10</span></div>
+        <div class="hday"><span class="hday-w">五</span><span class="hday-d">11</span></div>
+        <div class="hday on"><span class="hday-w">六</span><span class="hday-d">12</span></div>
+        <div class="hday today on"><span class="hday-w">日</span><span class="hday-d">13</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="ph-tabs">
+    <div class="tab"><span class="tab-ico">◈</span><span class="tab-txt">概览</span></div>
+    <div class="tab"><span class="tab-ico">✓</span><span class="tab-txt">待办</span></div>
+    <div class="tab"><span class="tab-ico">▤</span><span class="tab-txt">日程</span></div>
+    <div class="tab active"><span class="tab-ico">◎</span><span class="tab-txt">习惯</span></div>
+    <div class="tab"><span class="tab-ico">¥</span><span class="tab-txt">记账</span></div>
+  </div>
+</div>
+</div>
+</body></html>
