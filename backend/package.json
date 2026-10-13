@@ -1,0 +1,10 @@
+{
+  "name": "xiaoxiaoguai-canteen-backend",
+  "version": "1.0.0",
+  "description": "小小怪食堂同步后端：托管主工作台与食堂点菜端，提供订单 API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": { "node": ">=18" }
+}

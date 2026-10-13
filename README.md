@@ -77,34 +77,80 @@
 
 ---
 
-## 五、后续可继续加的功能（已预留）
+## 五、🍱 衍生：「小小怪食堂」点餐系统
+
+这是一个**独立的移动端点餐工作台**，与主工作台联动：手机 A 上点餐下单 → 你的主工作台**实时收到订单**并可接单/完成。
+
+### 架构（三个部分）
+| 部分 | 位置 | 作用 |
+|------|------|------|
+| **点餐端** | `canteen/` | 顾客用：选菜系 → 点菜 → 加购物车 → 下单 |
+| **接收端** | 主工作台「食堂订单」模块 | 你用：实时查看订单、接单、标记完成 |
+| **同步后端** | `backend/` | 零依赖 Node 服务，存订单 + 提供 API，让两端跨设备共享 |
+
+> 配色沿用同一套**美拉德×奶油**主题，桌面图标也是你的头像。
+
+### 点餐端功能
+- **菜系版块可增删改**：湘菜 / 粤菜 / 川菜 / 甜品 / 西餐 / …（点右上角 ✎ 进入编辑模式，点版块=编辑，右下角 + = 新增，`✕` = 删除）
+- **菜品可增删改**：每道菜可上传**封面图**、填**名称**、选**辣度**（不辣/微辣/中辣/重辣/麻辣）、填**准备材料**、**材料成本**、**售价**、**制作方式**——全部可编辑
+- **菜品详情**：点进任意菜品看大图与全部信息，一键加入购物车
+- **购物车**：数量加减、移除、填桌号/备注、提交订单
+- 数据存本机，支持**菜单导出/导入**备份
+
+### 接收端（主工作台）
+- 新增「食堂订单」模块（在「更多」或概览页入口）
+- 每 5 秒自动刷新，实时显示新订单
+- 订单卡片含明细、总价、桌号、备注
+- 可点「接单 / 完成 / 取消」并同步回后端
+
+### 两种使用方式
+1. **本地/自托管（后端一起跑）**：用 `backend/` 的服务同时托管两个端，访问 `/` 是主工作台、`/canteen/` 是点餐端。`backend/` 已自带 `Procfile` / `railway.json` / `render.yaml`，可一键部署到 Railway、Render 等免费平台。
+2. **分离部署**：主工作台/点餐端用 Vercel/Netlify 静态托管；后端单独部署到 Railway/Render，然后在两个端的设置里把「同步服务地址 / 后端地址」填成后端网址即可。
+
+---
+
+## 六、后续可继续加的功能（已预留）
 
 | 需求 | 现状 |
 |------|------|
-| 云同步 / 多设备 | 已在 `db.js` 预留 `SyncAdapter` 接口，设置页有同步入口 |
+| 云同步 / 多设备 | 已在 `db.js` 预留 `SyncAdapter` 接口；食堂订单已接真实后端同步 |
 | 深色模式 | 样式变量已备好（`html[data-theme="dark"]`），待接入开关 |
 | 拖动排序分区 | 右上角 ✎ 编辑模式入口已预留 |
 | 数据图表 | 记账/健康数据已结构化，可直接接图表库 |
-| 提醒推送 | 需接入通知能力 |
+| 提醒推送 | 订单到达可做桌面通知，需接入 Notification 能力 |
 | 打包成真正的 App | 可基于当前 PWA 用 Capacitor 打包 |
 
 有想法随时说，我来改。
 
 ---
 
-## 六、文件结构
+## 七、文件结构
 
 ```
 workbench/
-├── index.html              # 页面骨架
-├── manifest.webmanifest    # PWA 配置（桌面图标、全屏）
-├── sw.js                   # 离线缓存
-├── icons/                  # 应用图标
-└── assets/
-    ├── style.css           # 样式（含深色模式变量）
-    ├── db.js               # 数据层 + 云同步接口
-    ├── modules.js          # ★ 分区注册表（扩展改这里）
-    └── app.js              # 主逻辑
+├── index.html              # 主工作台页面骨架
+├── manifest.webmanifest    # 主工作台 PWA 配置
+├── sw.js                   # 主工作台离线缓存
+├── icons/                  # 主工作台图标（你的头像）
+├── assets/
+│   ├── style.css           # 主工作台样式
+│   ├── db.js               # 主工作台数据层
+│   ├── modules.js          # ★ 分区注册表（扩展改这里）
+│   └── app.js              # 主工作台主逻辑
+├── canteen/                # 🍱 小小怪食堂点餐端（独立 PWA）
+│   ├── index.html
+│   ├── manifest.webmanifest
+│   ├── sw.js
+│   ├── icons/
+│   └── assets/             # 点餐端样式/数据/逻辑
+├── backend/                # 同步后端（零依赖 Node）
+│   ├── server.js           # 静态托管 + 订单 API
+│   ├── package.json
+│   ├── Procfile / railway.json / render.yaml   # 免费平台部署配置
+│   └── data/orders.json    # 订单数据（自动生成）
+├── theme-preview.html      # 主题效果预览
+├── vercel.json / netlify.toml
+└── README.md
 ```
 
 ---
@@ -171,14 +217,37 @@ git push -u origin main
 
 在 Netlify / Vercel 后台找到 **Domains**，添加自己的域名并按提示配置 DNS 即可，免费套餐已支持。
 
+### 后端部署（订单同步必需，免费）
+
+订单同步需要一个常驻服务。推荐 **Railway** 或 **Render** 免费套餐（`backend/` 已带配置文件）：
+
+1. 把仓库推到 GitHub（见下）
+2. 打开 <https://railway.app> 或 <https://render.com> → 用 GitHub 登录 → **New Project → Deploy from GitHub repo**
+3. 选本仓库，Root Directory 设为 `backend`，构建命令留空，启动命令 `node server.js`
+4. 部署后得到后端网址，例如 `https://xiaoxiaoguai-canteen.up.railway.app`
+
+部署完成后，在点餐端「管理 → 订单同步服务」和主工作台「设置 → 同步地址」里都填入这个后端网址，两端即打通。
+
+> 本地联调更简单：直接在仓库根目录 `node backend/server.js`，它会同时托管主工作台（`/`）和点餐端（`/canteen/`），订单 API 在 `/api/orders`。
+
 ---
 
 ## 八、本地预览（开发用）
 
+### 仅看前端
 ```bash
 cd workbench
 python3 -m http.server 8080
 # 浏览器打开 http://localhost:8080
+```
+
+### 联调点餐 + 接收（含后端）
+```bash
+cd workbench/backend
+node server.js
+# 主工作台  http://localhost:8080/
+# 点餐端    http://localhost:8080/canteen/
+# 在「设置/管理」里把同步地址留空（= 同源）即可
 ```
 
 ---

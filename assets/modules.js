@@ -152,6 +152,16 @@
         { key: 'category', label: '类别', type: 'select', options: ['事业', '学习', '健康', '财务', '生活', '其他'], default: '其他' },
         { key: 'note', label: '拆解 / 说明', type: 'textarea' }
       ]
+    },
+
+    /* ---------------- 食堂订单（来自「小小怪食堂」点菜端） ---------------- */
+    {
+      id: 'orders',
+      name: '食堂订单',
+      icon: '🍱',
+      desc: '接收点餐订单',
+      type: 'orders',
+      system: true
     }
 
     /* ============ 在这里继续添加你的新分区 ============

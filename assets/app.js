@@ -72,9 +72,12 @@
   function go(id) {
     currentModule = id;
     renderTabbar();
+    // 离开订单页时停止轮询
+    if (id !== 'orders' && typeof el.root._stopOrders === 'function') { el.root._stopOrders(); el.root._stopOrders = null; }
     if (id === 'dashboard') return renderDashboard();
     if (id === '__more') return renderMore();
     var m = getModule(id);
+    if (m.type === 'orders') return renderOrders();
     el.title.textContent = m.name;
     el.sub.textContent = m.desc;
     el.fab.style.display = (m.type === 'dashboard') ? 'none' : 'flex';
@@ -149,6 +152,28 @@
         }).join('') + '</section>';
     }
 
+    // 食堂订单入口（实时拉取待接单数量）
+    try {
+      fetch(apiBase() + 'api/orders?since=0').then(function (r) { return r.ok ? r.json() : null; }).then(function (data) {
+        if (DB.get() && currentModule !== 'dashboard') return;
+        var orders = (data && data.orders) || [];
+        var pending = orders.filter(function (o) { return o.status === '待接单'; }).length;
+        if (pending > 0) {
+          var box = document.getElementById('dashOrders');
+          if (box) {
+            box.querySelector('.do-count').textContent = pending;
+          } else {
+            var sec = document.createElement('section');
+            sec.className = 'card'; sec.id = 'dashOrders';
+            sec.style.borderLeft = '4px solid var(--c-primary)';
+            sec.innerHTML = '<div class="card-head"><h2>🍱 食堂订单</h2><button class="link-btn" data-go="orders">查看 ›</button></div>' +
+              '<div style="display:flex;align-items:baseline;gap:8px"><span class="do-count" style="font-size:26px;font-weight:700;color:var(--c-primary)">' + pending + '</span><span style="font-size:13px;color:var(--c-text-3)">个新订单待接单（来自「小小怪食堂」点菜端）</span></div>';
+            el.root.appendChild(sec);
+          }
+        }
+      }).catch(function () {});
+    } catch (e) {}
+
     el.root.innerHTML = html;
   }
   function statCard(label, num, sub, goId) {
@@ -159,6 +184,62 @@
     if (!p) return '';
     var cls = p === '高' ? 'p-high' : p === '中' ? 'p-mid' : 'p-low';
     return '<span class="prio ' + cls + '">' + p + '</span>';
+  }
+  function money(n) { return '¥' + (Number(n) || 0).toFixed(0); }
+
+  /* ---------------- 食堂订单（接收端） ------------- */
+  function apiBase() {
+    var b = (DB.get().settings.syncEndpoint || '').trim();
+    if (b && !b.endsWith('/')) b += '/';
+    return b; // 空 = 同源
+  }
+  var ordersTimer = null;
+  function renderOrders() {
+    el.title.textContent = '食堂订单';
+    el.sub.textContent = '来自「小小怪食堂」点餐';
+    el.fab.style.display = 'none';
+    el.root.innerHTML = '<div class="empty-box"><div class="ei">🍱</div><h3>正在接收订单…</h3><p>来自点菜端的下单会出现在这里</p></div>';
+    clearInterval(ordersTimer);
+    function loadOnce() {
+      DB.fetchOrders ? null : null;
+      fetch(apiBase() + 'api/orders?since=0').then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (data) {
+          var orders = (data.orders || []).slice().reverse();
+          if (!orders.length) {
+            el.root.innerHTML = '<div class="empty-box"><div class="ei">🍱</div><h3>还没有订单</h3><p>在点菜端下单后，这里会实时显示</p></div>';
+            return;
+          }
+          var pending = orders.filter(function (o) { return o.status === '待接单'; }).length;
+          var html = '<div class="ledger-summary" style="margin-bottom:12px">' +
+            '<div class="ls-item"><span>累计订单</span><b>' + orders.length + '</b></div>' +
+            '<div class="ls-item"><span>待接单</span><b class="expense">' + pending + '</b></div>' +
+            '<div class="ls-item"><span>完成</span><b>' + orders.filter(function (o) { return o.status === '已完成'; }).length + '</b></div></div>';
+          html += '<div class="list-wrap">' + orders.map(function (o) { return orderCard(o); }).join('') + '</div>';
+          el.root.innerHTML = html;
+        })
+        .catch(function () {
+          el.root.innerHTML = '<div class="empty-box"><div class="ei">⚠️</div><h3>无法连接订单服务</h3><p>请在设置里填写后端地址，或确认后端已启动</p></div>';
+        });
+    }
+    loadOnce();
+    ordersTimer = setInterval(loadOnce, 5000); // 每 5 秒轮询
+    // 切换走时停止轮询
+    el.root._stopOrders = function () { clearInterval(ordersTimer); };
+  }
+  function orderCard(o) {
+    var items = (o.items || []).map(function (i) {
+      return '<div class="oi-row"><span class="oi-name">' + esc(i.name) + (i.spice ? ' <span class="oi-sub">' + esc(i.spice) + '</span>' : '') + ' ×' + i.qty + '</span><span>' + money(i.price * i.qty) + '</span></div>';
+    }).join('');
+    var actions = '';
+    if (o.status === '待接单') actions = '<button class="btn-accept" data-ostatus="' + o.id + '|已接单">接单</button>';
+    else if (o.status === '已接单') actions = '<button class="btn-done" data-ostatus="' + o.id + '|已完成">完成</button><button class="btn-cancel" data-ostatus="' + o.id + '|已取消">取消</button>';
+    return '<div class="order-card" data-oid="' + o.id + '">' +
+      '<div class="order-head"><span class="order-time">' + new Date(o.createdAt).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + (o.table ? ' · 桌号 ' + esc(o.table) : '') + '</span>' +
+      '<span class="status-badge status-' + esc(o.status) + '">' + esc(o.status) + '</span></div>' +
+      '<div class="order-items">' + items + '</div>' +
+      (o.note ? '<div class="d-val" style="font-size:12px;color:var(--c-text-3);margin-bottom:8px">备注：' + esc(o.note) + '</div>' : '') +
+      '<div class="order-foot"><span class="order-total">合计 ' + money(o.total) + '</span>' +
+      (actions ? '<div class="order-actions">' + actions + '</div>' : '') + '</div></div>';
   }
 
   /* ---------------- 更多分区 ---------------- */
@@ -460,9 +541,19 @@
 
   /* ---------------- 事件委托 ---------------- */
   document.addEventListener('click', function (ev) {
-    var t = ev.target.closest ? ev.target.closest('[data-go],[data-open],[data-del],[data-toggle-todo],[data-habit],[data-move],[data-addcol],[data-check]') : null;
+    var t = ev.target.closest ? ev.target.closest('[data-go],[data-open],[data-del],[data-toggle-todo],[data-habit],[data-move],[data-addcol],[data-check],[data-ostatus]') : null;
     if (!t) return;
 
+    if (t.hasAttribute('data-ostatus')) {
+      var op = t.getAttribute('data-ostatus').split('|');
+      fetch(apiBase() + 'api/orders/' + op[0], {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: op[1] })
+      }).then(function (r) { return r.ok; }).then(function (ok) {
+        toast(ok ? ('已更新为「' + op[1] + '」') : '更新失败');
+        if (ok) { var card = t.closest('.order-card'); if (card) card.style.opacity = .5; renderOrders(); }
+      }).catch(function () { toast('网络错误'); });
+      return;
+    }
     if (t.hasAttribute('data-go')) { go(t.getAttribute('data-go')); return; }
     if (t.hasAttribute('data-del')) {
       var d = t.getAttribute('data-del').split('|');
