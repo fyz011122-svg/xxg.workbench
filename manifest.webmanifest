@@ -2,7 +2,7 @@
   "name": "我的生活工作台",
   "short_name": "工作台",
   "description": "集待办、日程、习惯、记账、看板、笔记于一体的个人生活工作台",
-  "start_url": "./index.html",
+  "start_url": "/",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
@@ -16,8 +16,8 @@
     { "src": "./icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "待办", "url": "./index.html#todos" },
-    { "name": "记账", "url": "./index.html#ledger" },
-    { "name": "看板", "url": "./index.html#board" }
+    { "name": "待办", "url": "/#todos" },
+    { "name": "记账", "url": "/#ledger" },
+    { "name": "看板", "url": "/#board" }
   ]
 }

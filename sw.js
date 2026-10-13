@@ -1,5 +1,5 @@
 /* Service Worker：离线缓存，让工作台无网也能打开 */
-const CACHE = 'workbench-v2';
+const CACHE = 'workbench-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -29,16 +29,14 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   if (e.request.url.includes('/api/')) return; // 订单 API 不缓存
+  // 网络优先：先取最新文件，失败才用缓存（保证更新能立即生效）
   e.respondWith(
-    caches.match(e.request).then((cached) => {
-      const network = fetch(e.request).then((res) => {
-        if (res && res.status === 200 && res.type === 'basic') {
-          const clone = res.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, clone));
-        }
-        return res;
-      }).catch(() => cached);
-      return cached || network;
-    })
+    fetch(e.request).then((res) => {
+      if (res && res.status === 200 && res.type === 'basic') {
+        const clone = res.clone();
+        caches.open(CACHE).then((c) => c.put(e.request, clone));
+      }
+      return res;
+    }).catch(() => caches.match(e.request))
   );
 });

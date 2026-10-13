@@ -43,13 +43,15 @@
 
   function apiBase() {
     var b = (state && state.settings.apiBase) || '';
-    if (b && !b.endsWith('/')) b += '/';
-    return b; // 空 = 同源
+    if (!b) return location.origin + '/'; // 空 = 同站点根目录（兼容 /canteen/ 等子路径）
+    if (!b.endsWith('/')) b += '/';
+    return b;
   }
 
   var DB = {
     init: function () { load(); return state; },
     get: function () { if (!state) load(); return state; },
+    apiBase: apiBase,
     cats: function () { return DB.get().categories; },
     dishesOf: function (catId) { return DB.get().dishes.filter(function (d) { return d.catId === catId; }); },
     dish: function (id) { return DB.get().dishes.filter(function (d) { return d.id === id; })[0]; },
