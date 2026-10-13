@@ -15,7 +15,11 @@ module.exports = async (req, res) => {
     for (let i = 0; i < 5; i++) {
       await new Promise((r) => setTimeout(r, 1600));
       const meta = await head(KEY);
-      const result = await get(meta.url, { token: process.env.BLOB_READ_WRITE_TOKEN });
+      const result = await get(meta.url, {
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+        access: 'private',
+        useCache: false
+      });
       text = await result.blob.text();
       out.steps.push('第' + (i + 1) + '次读回(' + ((i + 1) * 1.6).toFixed(1) + '秒后): ' + (text && text.length > 2 ? '有数据✓' : '空'));
       if (text && text.length > 2) { found = true; break; }

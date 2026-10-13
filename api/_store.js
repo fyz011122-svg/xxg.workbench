@@ -7,8 +7,12 @@ async function readOrders() {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
   try {
     const meta = await head(KEY);
-    // 私有库必须用官方 get() 读取（自动处理签名鉴权）；手拼 fetch(downloadUrl) 会 401
-    const result = await get(meta.url, { token: process.env.BLOB_READ_WRITE_TOKEN });
+    // 私有库必须用官方 get()：access 必填；useCache:false 绕过 CDN 缓存保证读到最新
+    const result = await get(meta.url, {
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      access: 'private',
+      useCache: false
+    });
     if (!result) return [];
     const text = await result.blob.text();
     const arr = JSON.parse(text || '[]');
