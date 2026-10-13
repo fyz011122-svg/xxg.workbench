@@ -1,0 +1,23 @@
+{
+  "name": "我的生活工作台",
+  "short_name": "工作台",
+  "description": "集待办、日程、习惯、记账、看板、笔记于一体的个人生活工作台",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#faf6f0",
+  "theme_color": "#a9714b",
+  "lang": "zh-CN",
+  "categories": ["productivity", "lifestyle"],
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "待办", "url": "./index.html#todos" },
+    { "name": "记账", "url": "./index.html#ledger" },
+    { "name": "看板", "url": "./index.html#board" }
+  ]
+}

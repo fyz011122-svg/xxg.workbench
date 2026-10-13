@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#a9714b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="我的工作台">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="./icons/icon-192.png">
+<title>我的生活工作台</title>
+<link rel="stylesheet" href="./assets/style.css">
+</head>
+<body>
+<div id="app">
+  <!-- 顶部栏 -->
+  <header id="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-logo" id="brandLogo">台</div>
+        <div class="brand-text">
+          <h1 id="pageTitle">今日概览</h1>
+          <p id="pageSub">加载中…</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="btnEditMode" title="编辑模式">✎</button>
+        <button class="icon-btn" id="btnMenu" title="设置">⚙</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main id="main">
+    <div id="viewRoot"></div>
+  </main>
+
+  <!-- 底部导航 -->
+  <nav id="tabbar"></nav>
+
+  <!-- 悬浮新增按钮 -->
+  <button id="fab" title="新增">+</button>
+</div>
+
+<!-- 通用弹层 -->
+<div id="sheetMask" class="mask hidden">
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <h3 id="sheetTitle">标题</h3>
+      <button class="close-btn" id="sheetClose">✕</button>
+    </div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="./assets/db.js"></script>
+<script src="./assets/modules.js"></script>
+<script src="./assets/app.js"></script>
+<script>
+/* 注册 Service Worker（离线可用 + 可安装） */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').catch(function (e) { console.warn('SW 注册失败', e); });
+  });
+}
+/* 支持通过 #todos 这样的锚点直达分区（配合桌面快捷方式） */
+window.addEventListener('load', function () {
+  var h = (location.hash || '').replace('#', '');
+  if (h) {
+    var btn = document.querySelector('[data-go="' + h + '"]');
+    if (btn) btn.click();
+  }
+});
+</script>
+</body>
+</html>
