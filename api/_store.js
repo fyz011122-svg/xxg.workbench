@@ -1,5 +1,5 @@
 /* 订单存储（Vercel Blob）：所有 Serverless 函数共用 */
-const { put, head } = require('@vercel/blob');
+const { put, head, get } = require('@vercel/blob');
 const KEY = 'orders.json';
 
 async function readOrders() {
@@ -7,9 +7,10 @@ async function readOrders() {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
   try {
     const meta = await head(KEY);
-    // 私有库用 downloadUrl（临时签名地址）；公开库两者等价
-    const res = await fetch(meta.downloadUrl || meta.url, { cache: 'no-store' });
-    const text = await res.text();
+    // 私有库必须用官方 get() 读取（自动处理签名鉴权）；手拼 fetch(downloadUrl) 会 401
+    const result = await get(meta.url, { token: process.env.BLOB_READ_WRITE_TOKEN });
+    if (!result) return [];
+    const text = await result.blob.text();
     const arr = JSON.parse(text || '[]');
     return Array.isArray(arr) ? arr : [];
   } catch (e) {
