@@ -1,6 +1,7 @@
 /* 小小怪食堂 · 主逻辑 */
 (function () {
   'use strict';
+  var FRONT_VER = 'canteen-v3';
   var state = CDB.init();
   var currentView = 'home';
   var currentCat = null;
@@ -123,7 +124,8 @@
         return;
       }
       el.root.innerHTML = orders.map(orderCard).join('');
-    }).catch(function () {
+    }).catch(function (e) {
+      console.error('[点餐端] 拉取订单失败', e);
       el.root.innerHTML = '<div class="empty-box"><div class="ei">⚠️</div><h3>无法连接服务器</h3><p>请检查网络或后端地址设置</p></div>';
     });
     updateCartBar();
@@ -152,10 +154,12 @@
       '<div class="form-actions"><button class="btn ghost" id="btnExport">导出菜单</button><button class="btn ghost" id="btnImport">导入菜单</button></div>' +
       '<input type="file" id="fileImport" accept=".json" class="hidden"></div>' +
       '<div class="set-group"><h4>订单同步服务</h4>' +
-      '<p class="hint">留空 = 与本应用同地址的服务器（本地/自托管）。部署到独立后端时填入其网址。</p>' +
-      '<label class="fld"><span>后端地址</span><input id="setApi" placeholder="https://你的服务/api" value="' + esc(s.settings.apiBase) + '"></label>' +
-      '<div class="form-actions"><button class="btn primary" id="btnTest">测试连接</button></div></div>' +
+      '<p class="hint">后端地址一般留空（自动指向本站点）。当前使用的地址：<code>' + esc(CDB.apiBase()) + '</code></p>' +
+      '<label class="fld"><span>后端地址（一般不用改）</span><input id="setApi" placeholder="https://你的服务/api" value="' + esc(s.settings.apiBase) + '"></label>' +
+      '<div class="form-actions"><button class="btn primary" id="btnTest">测试连接</button></div>' +
+      '<div id="connStatus" class="conn-status">点击下方「测试连接」检测服务</div></div>' +
       '<div class="set-group danger"><h4>重置</h4><button class="btn danger" id="btnReset">清空菜单（恢复示例）</button></div>' +
+      '<div class="set-group"><p class="hint">前端版本 ' + FRONT_VER + ' · 若与最新不符，请刷新或换无痕窗口</p></div>' +
       '</div>';
     el.root.innerHTML = html;
 
@@ -172,9 +176,18 @@
     });
     $('#setApi').addEventListener('change', function () { CDB.setSetting('apiBase', this.value.trim()); toast('已保存'); });
     $('#btnTest').addEventListener('click', function () {
-      fetch((CDB.get().settings.apiBase || '') + 'api/health').then(function (r) { return r.ok; }).then(function (ok) {
-        toast(ok ? '连接成功 ✓' : '地址不可用');
-      }).catch(function () { toast('无法连接'); });
+      var url = CDB.apiBase() + 'api/health';
+      var st = document.getElementById('connStatus');
+      console.log('[点餐端] 测试连接 →', url);
+      st.className = 'conn-status'; st.textContent = '正在连接 ' + url + ' …';
+      fetch(url).then(function (r) {
+        console.log('[点餐端] 响应:', r.status, 'ok=', r.ok);
+        if (r.ok) { st.className = 'conn-status ok'; st.textContent = '✓ 连接成功，服务正常'; toast('连接成功 ✓'); }
+        else { st.className = 'conn-status bad'; st.textContent = '✗ 地址不可用，状态码 ' + r.status; toast('地址不可用'); }
+      }).catch(function (e) {
+        console.error('[点餐端] 连接失败:', e);
+        st.className = 'conn-status bad'; st.textContent = '✗ 无法连接：' + ((e && e.message) || e); toast('无法连接');
+      });
     });
     $('#btnReset').addEventListener('click', function () { if (confirm('清空所有自定义菜单？')) { CDB.reset(); toast('已重置'); renderHome(); } });
     updateCartBar();
@@ -317,10 +330,14 @@
         table: $('#orderTable').value.trim(),
         note: $('#orderNote').value.trim()
       };
-      CDB.submitOrder(payload).then(function () {
+      CDB.submitOrder(payload).then(function (res) {
+        console.log('[点餐端] 下单成功', res);
         CDB.cartClear(); closeSheet(); updateCartBar(); toast('下单成功 ✓');
         currentView = 'orders'; render();
-      }).catch(function () { toast('下单失败，检查网络'); });
+      }).catch(function (e) {
+        console.error('[点餐端] 下单失败', e);
+        toast('下单失败，检查网络');
+      });
     });
   }
 

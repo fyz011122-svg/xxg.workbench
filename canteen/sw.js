@@ -1,4 +1,4 @@
-const CACHE = 'canteen-v1';
+const CACHE = 'canteen-v3';
 const ASSETS = [
   '/canteen/', '/canteen/index.html', '/canteen/manifest.webmanifest',
   '/canteen/assets/style.css', '/canteen/assets/db.js', '/canteen/assets/app.js',
@@ -9,8 +9,9 @@ self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Prom
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   if (e.request.url.includes('/api/')) return; // API 不缓存
-  e.respondWith(caches.match(e.request).then(cached => {
-    const net = fetch(e.request).then(res => { if (res && res.status === 200 && res.type === 'basic') { const cl = res.clone(); caches.open(CACHE).then(c => c.put(e.request, cl)); } return res; }).catch(() => cached);
-    return cached || net;
-  }));
+  // 网络优先：先取最新文件，失败才用缓存（保证更新能立即生效）
+  e.respondWith(fetch(e.request).then(res => {
+    if (res && res.status === 200 && res.type === 'basic') { const cl = res.clone(); caches.open(CACHE).then(c => c.put(e.request, cl)); }
+    return res;
+  }).catch(() => caches.match(e.request)));
 });
