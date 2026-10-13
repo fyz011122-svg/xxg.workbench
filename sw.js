@@ -1,5 +1,5 @@
 /* Service Worker：离线缓存，让工作台无网也能打开 */
-const CACHE = 'workbench-v1';
+const CACHE = 'workbench-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -28,6 +28,7 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  if (e.request.url.includes('/api/')) return; // 订单 API 不缓存
   e.respondWith(
     caches.match(e.request).then((cached) => {
       const network = fetch(e.request).then((res) => {

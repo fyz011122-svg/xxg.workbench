@@ -10,3 +10,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+backend/data/
+node_modules/
+.vercel

@@ -168,14 +168,33 @@ workbench/
 
 > 想固定网址：在 Netlify 里注册免费账号（可用邮箱/GitHub），即可保留站点并自定义域名。
 
-### 方式 B：Vercel（推荐，能自动更新）
+### 方式 B：Vercel（推荐，全部功能一个站点搞定）★
 
-1. 把仓库推到 GitHub（见下）
-2. 打开 <https://vercel.com/new> → 用 GitHub 登录 → 选择该仓库
-3. Framework Preset 选 **Other**，Build Command 留空，Output Directory 留 `.`
-4. 点 **Deploy** → 几十秒后得到 `https://xxx.vercel.app`
+> 已内置 `api/` 云函数 + Vercel Blob 存储，**点餐端下单 → 主工作台收单** 直接可用，无需额外后端。
 
-以后每次 `git push`，Vercel 会自动重新部署。
+**步骤 1：把项目部署上去（任选其一）**
+
+- **a) 拖文件夹（最快）**：在 Vercel 项目创建页把 `workbench` 文件夹直接拖到「导入项目」区域（页面会提示 "将文件夹拖拽到此"）。
+- **b) 连 GitHub**：先在本地 `git push` 到 GitHub，再到 <https://vercel.com/new> 用 GitHub 登录并选择本仓库。
+
+Framework Preset 选 **Other**，其余默认，点 **Deploy**，几十秒后得到 `https://xxx.vercel.app`。
+
+**步骤 2：开通 Blob 存储（订单同步必需，免费）**
+
+不开启这一步，订单功能会提示 503。打开方式：
+
+1. 进入刚创建的项目 → 顶部 **Storage（存储）** 标签 → 点 **Create**（创建）→ 选 **Blob**
+2. 起个名字（如 `orders`）→ 点 **Create**
+3. 在弹出的连接页点 **Connect**（连接到此项目）—— 这一步会自动注入 `BLOB_READ_WRITE_TOKEN`
+4. 回到 **Deployments** → 对最新部署点 **··· → Redeploy**（重新部署），让环境变量生效
+
+**步骤 3：验证**
+
+- 主工作台：`https://你的域名.vercel.app/`
+- 点餐端：`https://你的域名.vercel.app/canteen/`
+- 手机浏览器分别打开 → 添加到主屏幕 → 点餐端下单，主工作台「食堂订单」几秒内收到
+
+以后每次 `git push`，Vercel 自动重新部署。
 
 ### 方式 C：GitHub Pages
 
@@ -215,20 +234,17 @@ git push -u origin main
 
 ### 自定义域名（可选）
 
-在 Netlify / Vercel 后台找到 **Domains**，添加自己的域名并按提示配置 DNS 即可，免费套餐已支持。
+在 Vercel 后台 **Project → Settings → Domains**，添加自己的域名并按提示配置 DNS 即可，免费套餐已支持。
 
-### 后端部署（订单同步必需，免费）
+### 本地联调（开发用，可选）
 
-订单同步需要一个常驻服务。推荐 **Railway** 或 **Render** 免费套餐（`backend/` 已带配置文件）：
+仓库 `backend/` 提供了一个零依赖的本地版后端，会同时托管主工作台（`/`）和点餐端（`/canteen/`），订单 API 在 `/api/orders`：
 
-1. 把仓库推到 GitHub（见下）
-2. 打开 <https://railway.app> 或 <https://render.com> → 用 GitHub 登录 → **New Project → Deploy from GitHub repo**
-3. 选本仓库，Root Directory 设为 `backend`，构建命令留空，启动命令 `node server.js`
-4. 部署后得到后端网址，例如 `https://xiaoxiaoguai-canteen.up.railway.app`
+```bash
+node backend/server.js   # 默认 http://localhost:8080
+```
 
-部署完成后，在点餐端「管理 → 订单同步服务」和主工作台「设置 → 同步地址」里都填入这个后端网址，两端即打通。
-
-> 本地联调更简单：直接在仓库根目录 `node backend/server.js`，它会同时托管主工作台（`/`）和点餐端（`/canteen/`），订单 API 在 `/api/orders`。
+> 注意：`backend/` 仅是本地开发/调试用途，**部署到 Vercel 时不会用到它**（Vercel 用的是内置 `api/` 云函数）。部署前可忽略此目录。
 
 ---
 
