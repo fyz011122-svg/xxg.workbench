@@ -1,5 +1,6 @@
 /* GET /api/diag —— 诊断 Blob 读写（用独立探针文件，绝不碰真实 orders.json） */
-const { put, head, get, del } = require('@vercel/blob');
+const { put, head, del } = require('@vercel/blob');
+const { readBlobText } = require('./_store');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,12 +16,7 @@ module.exports = async (req, res) => {
     for (let i = 0; i < 5; i++) {
       await new Promise((r) => setTimeout(r, 1600));
       const meta = await head(KEY);
-      const result = await get(meta.url, {
-        token: process.env.BLOB_READ_WRITE_TOKEN,
-        access: 'private',
-        useCache: false
-      });
-      text = await result.blob.text();
+      const text = await readBlobText(meta.url);
       out.steps.push('第' + (i + 1) + '次读回(' + ((i + 1) * 1.6).toFixed(1) + '秒后): ' + (text && text.length > 2 ? '有数据✓' : '空'));
       if (text && text.length > 2) { found = true; break; }
     }

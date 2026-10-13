@@ -2,19 +2,26 @@
 const { put, head, get } = require('@vercel/blob');
 const KEY = 'orders.json';
 
+// 读取指定 blob 的文本内容（兼容不同环境下 get() 返回的类型差异）
+async function readBlobText(url) {
+  const result = await get(url, {
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+    access: 'private',
+    useCache: false
+  });
+  if (!result || !result.blob) return '';
+  const b = result.blob;
+  if (typeof b.text === 'function') return await b.text();
+  if (typeof b === 'string') return b;
+  return Buffer.from(b).toString('utf8');
+}
+
 async function readOrders() {
   // 未连接 Blob 存储时返回 null，由调用方给出友好提示
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
   try {
     const meta = await head(KEY);
-    // 私有库必须用官方 get()：access 必填；useCache:false 绕过 CDN 缓存保证读到最新
-    const result = await get(meta.url, {
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-      access: 'private',
-      useCache: false
-    });
-    if (!result) return [];
-    const text = await result.blob.text();
+    const text = await readBlobText(meta.url);
     const arr = JSON.parse(text || '[]');
     return Array.isArray(arr) ? arr : [];
   } catch (e) {
@@ -34,4 +41,4 @@ async function writeOrders(arr) {
   });
 }
 
-module.exports = { readOrders, writeOrders };
+module.exports = { readOrders, writeOrders, readBlobText };
