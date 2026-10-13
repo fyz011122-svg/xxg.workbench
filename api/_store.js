@@ -2,18 +2,15 @@
 const { put, head, get } = require('@vercel/blob');
 const KEY = 'orders.json';
 
-// 读取指定 blob 的文本内容（兼容不同环境下 get() 返回的类型差异）
+// 读取指定 blob 的文本内容：get() 返回 stream（内容流）+ blob（仅元数据）
 async function readBlobText(url) {
   const result = await get(url, {
     token: process.env.BLOB_READ_WRITE_TOKEN,
     access: 'private',
     useCache: false
   });
-  if (!result || !result.blob) return '';
-  const b = result.blob;
-  if (typeof b.text === 'function') return await b.text();
-  if (typeof b === 'string') return b;
-  return Buffer.from(b).toString('utf8');
+  if (!result || !result.stream) return '';
+  return await new Response(result.stream).text();
 }
 
 async function readOrders() {
