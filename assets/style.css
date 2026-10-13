@@ -244,7 +244,8 @@ html[data-theme="dark"] #tabbar { background: rgba(41,32,24,.94); }
   margin-bottom: 9px; box-shadow: var(--shadow); transition: .15s;
 }
 .kanban-card:active { transform: scale(.98); }
-.kc-title { font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+.kc-title { font-size: 14px; font-weight: 500; margin-bottom: 6px; display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+.kc-del { margin: -2px -4px 0 0; }
 .kc-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; color: var(--c-text-3); }
 .kc-actions { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
 .kc-actions button {
@@ -403,6 +404,8 @@ html[data-theme="dark"] #tabbar { background: rgba(41,32,24,.94); }
 .order-total { font-size: 16px; font-weight: 700; color: var(--c-primary); }
 .order-actions { display: flex; gap: 8px; }
 .order-actions button { font-size: 12px; padding: 6px 13px; border-radius: 100px; font-weight: 600; }
+.btn-del-order { background: #fdecec; color: var(--c-danger); }
+.btn-del-order:active { background: #f6d6d6; }
 .btn-accept { background: var(--c-primary); color: #fff; }
 .btn-done { background: var(--c-primary-soft); color: var(--c-primary); }
 .btn-cancel { background: #f6e3dc; color: var(--c-danger); }

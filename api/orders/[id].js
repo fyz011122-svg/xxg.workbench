@@ -5,7 +5,7 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'no-store');
   if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'PATCH') return res.status(405).json({ error: 'method not allowed' });
+  if (req.method !== 'PATCH' && req.method !== 'DELETE') return res.status(405).json({ error: 'method not allowed' });
 
   const orders = await readOrders();
   if (orders === null) {
@@ -15,6 +15,13 @@ module.exports = async (req, res) => {
   const id = req.query.id;
   const idx = orders.findIndex((o) => o.id === id);
   if (idx < 0) return res.status(404).json({ error: 'not found' });
+
+  // 删除订单
+  if (req.method === 'DELETE') {
+    orders.splice(idx, 1);
+    await writeOrders(orders);
+    return res.status(200).json({ ok: true, removed: id });
+  }
 
   const patch = req.body && typeof req.body === 'object' ? req.body : {};
   if (patch.status) orders[idx].status = patch.status;

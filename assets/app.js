@@ -239,7 +239,8 @@
       '<div class="order-items">' + items + '</div>' +
       (o.note ? '<div class="d-val" style="font-size:12px;color:var(--c-text-3);margin-bottom:8px">备注：' + esc(o.note) + '</div>' : '') +
       '<div class="order-foot"><span class="order-total">合计 ' + money(o.total) + '</span>' +
-      (actions ? '<div class="order-actions">' + actions + '</div>' : '') + '</div></div>';
+      '<div class="order-actions">' + actions +
+      '<button class="btn-del-order" data-order-del="' + o.id + '">删除</button></div></div>';
   }
 
   /* ---------------- 更多分区 ---------------- */
@@ -325,7 +326,8 @@
       html += '<div class="board-col"><div class="board-col-head"><span>' + col + '</span><b>' + items.length + '</b></div>';
       html += items.map(function (x) {
         return '<div class="kanban-card" data-open="' + m.id + '|' + x.id + '">' +
-          '<div class="kc-title">' + esc(x.title) + '</div>' +
+          '<div class="kc-title"><span class="kc-txt">' + esc(x.title) + '</span>' +
+          '<button class="row-del kc-del" data-del="' + m.id + '|' + x.id + '" aria-label="删除">✕</button></div>' +
           '<div class="kc-meta">' + (x.owner ? '<span>👤 ' + esc(x.owner) + '</span>' : '') +
           (x.due ? '<span>📅 ' + fmtDate(x.due) + '</span>' : '') + '</div>' +
           '<div class="kc-actions">' + m.columns.map(function (c) {
@@ -541,7 +543,7 @@
 
   /* ---------------- 事件委托 ---------------- */
   document.addEventListener('click', function (ev) {
-    var t = ev.target.closest ? ev.target.closest('[data-go],[data-open],[data-del],[data-toggle-todo],[data-habit],[data-move],[data-addcol],[data-check],[data-ostatus]') : null;
+    var t = ev.target.closest ? ev.target.closest('[data-go],[data-open],[data-del],[data-order-del],[data-toggle-todo],[data-habit],[data-move],[data-addcol],[data-check],[data-ostatus]') : null;
     if (!t) return;
 
     if (t.hasAttribute('data-ostatus')) {
@@ -552,6 +554,16 @@
         toast(ok ? ('已更新为「' + op[1] + '」') : '更新失败');
         if (ok) { var card = t.closest('.order-card'); if (card) card.style.opacity = .5; renderOrders(); }
       }).catch(function () { toast('网络错误'); });
+      return;
+    }
+    if (t.hasAttribute('data-order-del')) {
+      var oid = t.getAttribute('data-order-del');
+      if (confirm('确定删除这条订单？删除后无法恢复。')) {
+        fetch(apiBase() + 'api/orders/' + encodeURIComponent(oid), { method: 'DELETE' })
+          .then(function (r) { return r.ok; })
+          .then(function (ok) { toast(ok ? '已删除订单' : '删除失败'); if (ok) renderOrders(); })
+          .catch(function () { toast('网络错误'); });
+      }
       return;
     }
     if (t.hasAttribute('data-go')) { go(t.getAttribute('data-go')); return; }
