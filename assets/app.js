@@ -240,7 +240,7 @@
       (o.note ? '<div class="d-val" style="font-size:12px;color:var(--c-text-3);margin-bottom:8px">备注：' + esc(o.note) + '</div>' : '') +
       '<div class="order-foot"><span class="order-total">合计 ' + money(o.total) + '</span>' +
       '<div class="order-actions">' + actions +
-      '<button class="btn-del-order" data-order-del="' + o.id + '">删除</button></div></div>';
+      '<button class="btn-del-order" data-order-del="' + o.id + '">删除</button></div></div></div>';
   }
 
   /* ---------------- 更多分区 ---------------- */
